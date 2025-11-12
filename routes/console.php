@@ -65,13 +65,15 @@ Schedule::command('serpapi:fetch-trends')
             ]);
         }
     })
-    ->after(function () {
-        \Log::info('University Data Pipeline tamamlandı.', [
+    ->onSuccess(function () {
+        \Log::info('University Data Pipeline başarıyla tamamlandı!', [
             'completed_at' => now()->toDateTimeString(),
         ]);
     })
     ->onFailure(function () {
-        \Log::error('University Data Pipeline başarısız oldu!');
+        \Log::error('University Data Pipeline başarısız oldu!', [
+            'failed_at' => now()->toDateTimeString(),
+        ]);
     })
     ->name('university-data-pipeline')
     ->withoutOverlapping()
