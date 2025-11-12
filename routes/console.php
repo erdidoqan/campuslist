@@ -9,39 +9,21 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 // Scheduled Tasks
-// ABD gündüz saatleri (9:00-21:00 EST) arasında her dakika çalışan task chain
-// DEBUG: Geçici olarak timezone kontrolü kaldırıldı, her zaman çalışacak
+// ABD gündüz saatleri (9:00-21:00 EST) arasında her saat çalışan task chain
 Schedule::command('serpapi:fetch-trends')
-    ->everyMinute()
-    ->before(function () {
-        \Log::info('University Data Pipeline başlatılıyor...', [
-            'time' => now()->toDateTimeString(),
-            'timezone' => 'America/New_York',
-        ]);
-    })
+    ->hourly()
+    ->between('9:00', '21:00')
+    ->timezone('America/New_York')
     ->then(function () {
-        \Log::info('serpapi:fetch-trends tamamlandı, openai:fetch-university-data başlatılıyor...');
         
         // Trends fetch'ten sonra university data'yı güncelle
         $exitCode = Artisan::call('openai:fetch-university-data', ['--limit' => 25]);
-        
-        \Log::info('openai:fetch-university-data tamamlandı', [
-            'exit_code' => $exitCode,
-        ]);
     })
     ->then(function () {
-        \Log::info('universities:score başlatılıyor...');
-        
         // University data'dan sonra scoring yap
         $exitCode = Artisan::call('universities:score', ['--limit' => 25]);
-        
-        \Log::info('universities:score tamamlandı', [
-            'exit_code' => $exitCode,
-        ]);
     })
     ->then(function () {
-        \Log::info('Revalidate isteği gönderiliyor...');
-        
         try {
             // Tüm işler bittikten sonra revalidate isteği at
             $response = \Illuminate\Support\Facades\Http::timeout(30)
