@@ -257,6 +257,7 @@ class UniversityController extends Controller
             'gps_coordinates' => $university->gps_coordinates,
             'acceptance_rate' => $university->acceptance_rate,
             'ranking' => $university->ranking,
+            'overall_grade' => $university->score?->overall_grade,
             'enrollment' => [
                 'total' => $university->enrollment_total,
                 'undergraduate' => $university->enrollment_undergraduate,
