@@ -145,19 +145,20 @@ class UniversityController extends Controller
         }
 
         // Sorting
-        $sortBy = $request->get('sort_by', 'name');
-        $sortOrder = $request->get('sort_order', 'asc');
+        $sortBy = $request->get('sort_by', 'created_at');
+        $sortOrder = $request->get('sort_order', 'desc');
 
         $allowedSortFields = [
             'name', 'founded', 'acceptance_rate', 
             'enrollment_total', 'tuition_undergraduate', 
-            'requirement_gpa_min', 'requirement_sat', 'requirement_act'
+            'requirement_gpa_min', 'requirement_sat', 'requirement_act',
+            'created_at', 'updated_at'
         ];
 
         if (in_array($sortBy, $allowedSortFields, true)) {
             $query->orderBy($sortBy, $sortOrder === 'desc' ? 'desc' : 'asc');
         } else {
-            $query->orderBy('name', 'asc');
+            $query->orderBy('created_at', 'desc');
         }
 
         // Pagination
