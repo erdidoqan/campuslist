@@ -95,4 +95,14 @@ class University extends Model
     {
         return $this->majorsRelation()->wherePivot('is_notable', true);
     }
+
+    /**
+     * Get media (photos) for this university
+     *
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function media()
+    {
+        return Media::forUniversity($this->id);
+    }
 }

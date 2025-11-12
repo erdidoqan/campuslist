@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\MajorController;
+use App\Http\Controllers\Api\MediaController;
 use App\Http\Controllers\Api\UniversityController;
 use Illuminate\Support\Facades\Route;
 
@@ -19,6 +20,11 @@ Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
     // Majors endpoints
     Route::get('majors', [MajorController::class, 'index']);
     Route::get('majors/{id}', [MajorController::class, 'show']);
+
+    // Media endpoints
+    Route::get('media', [MediaController::class, 'index']);
+    Route::get('media/{id}', [MediaController::class, 'show']);
+    Route::get('universities/{universityId}/media', [MediaController::class, 'forUniversity']);
 
     // Auth endpoints (protected)
     Route::post('auth/logout', [AuthController::class, 'logout']);

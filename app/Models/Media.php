@@ -39,5 +39,33 @@ class Media extends Model
             }
         });
     }
+
+    /**
+     * Get university from meta
+     *
+     * @return University|null
+     */
+    public function university(): ?University
+    {
+        $universityId = $this->meta['university_id'] ?? null;
+
+        if (! $universityId) {
+            return null;
+        }
+
+        return University::find($universityId);
+    }
+
+    /**
+     * Scope to filter by university ID
+     *
+     * @param  \Illuminate\Database\Eloquent\Builder  $query
+     * @param  int  $universityId
+     * @return \Illuminate\Database\Eloquent\Builder
+     */
+    public function scopeForUniversity($query, int $universityId)
+    {
+        return $query->whereJsonContains('meta->university_id', $universityId);
+    }
 }
 

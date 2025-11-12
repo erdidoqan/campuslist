@@ -250,6 +250,280 @@ curl -X GET "https://app.listcampus.com/api/v1/universities/slug/massachusetts-i
 
 ---
 
+## Media Endpoints
+
+### 1. Media Listesi
+
+Tüm medya dosyalarını filtreleme ve sayfalama ile listeler.
+
+**Endpoint:** `GET /api/v1/media`
+
+**Query Parametreleri:**
+
+| Parametre | Tip | Açıklama | Örnek |
+|-----------|-----|----------|-------|
+| `university_id` | integer | Üniversite ID'sine göre filtreleme | `1` |
+| `university_slug` | string | Üniversite slug'ına göre filtreleme | `massachusetts-institute-of-technology` |
+| `disk` | string | Disk adına göre filtreleme | `r2` |
+| `mime_type` | string | MIME type'a göre filtreleme (tam veya tip) | `image/jpeg`, `image`, `video` |
+| `search` | string | Dosya adı veya orijinal adına göre arama | `photo` |
+| `sort_by` | string | Sıralama alanı | `created_at`, `updated_at`, `size`, `filename`, `mime_type` |
+| `sort_order` | string | Sıralama yönü | `asc`, `desc` |
+| `per_page` | integer | Sayfa başına kayıt (max: 100, default: 15) | `20` |
+| `page` | integer | Sayfa numarası | `1` |
+
+**Örnek İstek:**
+
+```bash
+curl -X GET "https://app.listcampus.com/api/v1/media?university_id=1&mime_type=image&sort_by=created_at&sort_order=desc" \
+  -H "Authorization: Bearer {your_token}" \
+  -H "Accept: application/json"
+```
+
+**Örnek Response:**
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "id": 1,
+      "uuid": "550e8400-e29b-41d4-a716-446655440000",
+      "disk": "r2",
+      "filename": "mit-photo-abc123",
+      "original_name": "MIT Campus Photo",
+      "extension": "jpg",
+      "mime_type": "image/jpeg",
+      "size": 2456789,
+      "size_human": "2.34 MB",
+      "path": "universities/massachusetts-institute-of-technology/photos/mit-photo-abc123.jpg",
+      "url": "https://your-r2-domain.com/universities/massachusetts-institute-of-technology/photos/mit-photo-abc123.jpg",
+      "glide_urls": {
+        "thumbnail": "https://app.listcampus.com/glide/universities%2Fmassachusetts-institute-of-technology%2Fphotos%2Fmit-photo-abc123.jpg?w=150&h=150&fit=crop&q=85",
+        "small": "https://app.listcampus.com/glide/universities%2Fmassachusetts-institute-of-technology%2Fphotos%2Fmit-photo-abc123.jpg?w=400&h=400&fit=contain&q=85",
+        "medium": "https://app.listcampus.com/glide/universities%2Fmassachusetts-institute-of-technology%2Fphotos%2Fmit-photo-abc123.jpg?w=800&h=800&fit=contain&q=85",
+        "large": "https://app.listcampus.com/glide/universities%2Fmassachusetts-institute-of-technology%2Fphotos%2Fmit-photo-abc123.jpg?w=1600&h=1600&fit=contain&q=90",
+        "original": "https://your-r2-domain.com/universities/massachusetts-institute-of-technology/photos/mit-photo-abc123.jpg",
+        "custom": "https://app.listcampus.com/glide/universities%2Fmassachusetts-institute-of-technology%2Fphotos%2Fmit-photo-abc123.jpg"
+      },
+      "directory": "universities/massachusetts-institute-of-technology/photos",
+      "meta": {
+        "google_photo_name": "places/ChIJ.../photos/AWn5SU6...",
+        "university_id": 1,
+        "place_id": "ChIJqSw3Qk9kZIgRUwjsDcF0vEA",
+        "width_px": 3992,
+        "height_px": 2245,
+        "slug": "massachusetts-institute-of-technology"
+      },
+      "university": {
+        "id": 1,
+        "name": "Massachusetts Institute of Technology",
+        "slug": "massachusetts-institute-of-technology"
+      },
+      "created_at": "2025-01-01T00:00:00.000000Z",
+      "updated_at": "2025-01-01T00:00:00.000000Z"
+    }
+  ],
+  "meta": {
+    "current_page": 1,
+    "last_page": 3,
+    "per_page": 15,
+    "total": 45,
+    "from": 1,
+    "to": 15
+  }
+}
+```
+
+---
+
+### 2. Media Detayı
+
+Belirli bir medya dosyasının detaylarını getirir.
+
+**Endpoint:** `GET /api/v1/media/{id}`
+
+**Path Parametreleri:**
+
+| Parametre | Tip | Açıklama |
+|-----------|-----|----------|
+| `id` | integer | Media ID'si |
+
+**Örnek İstek:**
+
+```bash
+curl -X GET "https://app.listcampus.com/api/v1/media/1" \
+  -H "Authorization: Bearer {your_token}" \
+  -H "Accept: application/json"
+```
+
+**Response:** Yukarıdaki ile aynı format (tek bir media objesi)
+
+---
+
+### 3. Üniversite Medyaları
+
+Belirli bir üniversiteye ait tüm medya dosyalarını getirir.
+
+**Endpoint:** `GET /api/v1/universities/{universityId}/media`
+
+**Path Parametreleri:**
+
+| Parametre | Tip | Açıklama |
+|-----------|-----|----------|
+| `universityId` | integer | Üniversite ID'si |
+
+**Örnek İstek:**
+
+```bash
+curl -X GET "https://app.listcampus.com/api/v1/universities/1/media" \
+  -H "Authorization: Bearer {your_token}" \
+  -H "Accept: application/json"
+```
+
+**Örnek Response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "university": {
+      "id": 1,
+      "name": "Massachusetts Institute of Technology",
+      "slug": "massachusetts-institute-of-technology"
+    },
+    "media": [
+      {
+        "id": 1,
+        "uuid": "550e8400-e29b-41d4-a716-446655440000",
+        "disk": "r2",
+        "filename": "mit-photo-abc123",
+        "original_name": "MIT Campus Photo",
+        "extension": "jpg",
+        "mime_type": "image/jpeg",
+        "size": 2456789,
+        "size_human": "2.34 MB",
+        "path": "universities/massachusetts-institute-of-technology/photos/mit-photo-abc123.jpg",
+        "url": "https://your-r2-domain.com/universities/massachusetts-institute-of-technology/photos/mit-photo-abc123.jpg",
+        "glide_urls": {
+          "thumbnail": "https://app.listcampus.com/glide/universities%2Fmassachusetts-institute-of-technology%2Fphotos%2Fmit-photo-abc123.jpg?w=150&h=150&fit=crop&q=85",
+          "small": "https://app.listcampus.com/glide/universities%2Fmassachusetts-institute-of-technology%2Fphotos%2Fmit-photo-abc123.jpg?w=400&h=400&fit=contain&q=85",
+          "medium": "https://app.listcampus.com/glide/universities%2Fmassachusetts-institute-of-technology%2Fphotos%2Fmit-photo-abc123.jpg?w=800&h=800&fit=contain&q=85",
+          "large": "https://app.listcampus.com/glide/universities%2Fmassachusetts-institute-of-technology%2Fphotos%2Fmit-photo-abc123.jpg?w=1600&h=1600&fit=contain&q=90",
+          "original": "https://your-r2-domain.com/universities/massachusetts-institute-of-technology/photos/mit-photo-abc123.jpg",
+          "custom": "https://app.listcampus.com/glide/universities%2Fmassachusetts-institute-of-technology%2Fphotos%2Fmit-photo-abc123.jpg"
+        },
+        "directory": "universities/massachusetts-institute-of-technology/photos",
+        "meta": {
+          "google_photo_name": "places/ChIJ.../photos/AWn5SU6...",
+          "university_id": 1,
+          "place_id": "ChIJqSw3Qk9kZIgRUwjsDcF0vEA",
+          "width_px": 3992,
+          "height_px": 2245
+        },
+        "university": {
+          "id": 1,
+          "name": "Massachusetts Institute of Technology",
+          "slug": "massachusetts-institute-of-technology"
+        },
+        "created_at": "2025-01-01T00:00:00.000000Z",
+        "updated_at": "2025-01-01T00:00:00.000000Z"
+      }
+    ],
+    "count": 5
+  }
+}
+```
+
+---
+
+## Görsel Optimizasyonu (Glide)
+
+Tüm görseller Glide ile optimize edilebilir. Media response'larında `glide_urls` objesi içinde hazır boyutlar ve özel URL'ler bulunur.
+
+### Glide URL Formatı
+
+```
+GET /glide/{path}?w={width}&h={height}&fit={fit}&q={quality}&fm={format}
+```
+
+### Glide Parametreleri
+
+| Parametre | Tip | Açıklama | Örnek Değer | Varsayılan |
+|-----------|-----|----------|-------------|------------|
+| `w` | integer | Genişlik (piksel) | `800` | - |
+| `h` | integer | Yükseklik (piksel) | `600` | - |
+| `fit` | string | Sığdırma modu | `contain`, `max`, `fill`, `stretch`, `crop` | `contain` |
+| `q` | integer | Kalite (0-100) | `90` | `90` |
+| `fm` | string | Format | `jpg`, `png`, `webp` | Orijinal format |
+| `filt` | string | Filtre | `greyscale`, `sepia` | - |
+| `blur` | integer | Blur efekti (0-100) | `10` | - |
+| `pixel` | integer | Pixelate efekti | `5` | - |
+| `dpr` | float | Device pixel ratio | `2` | `1` |
+
+### Fit Modları
+
+- `contain` - Görseli belirtilen boyutlara sığdırır, oranı korur
+- `max` - Maksimum boyutlara sığdırır, oranı korur
+- `fill` - Belirtilen boyutlara doldurur, oranı korur (boşluklar beyaz)
+- `stretch` - Belirtilen boyutlara gerer, oranı korumaz
+- `crop` - Belirtilen boyutlara kırpar, oranı korur
+
+### Hazır Boyutlar
+
+Media response'larında `glide_urls` objesi içinde şu hazır boyutlar bulunur:
+
+- `thumbnail` - 150x150, crop, %85 kalite
+- `small` - 400x400, contain, %85 kalite
+- `medium` - 800x800, contain, %85 kalite
+- `large` - 1600x1600, contain, %90 kalite
+- `original` - Orijinal dosya URL'i
+- `custom` - Özel parametreler için base URL
+
+### Örnek Kullanımlar
+
+#### Hazır Boyut Kullanımı
+```html
+<!-- Thumbnail -->
+<img src="https://app.listcampus.com/glide/universities%2Fmit%2Fphotos%2Fphoto.jpg?w=150&h=150&fit=crop&q=85" />
+
+<!-- Medium -->
+<img src="https://app.listcampus.com/glide/universities%2Fmit%2Fphotos%2Fphoto.jpg?w=800&h=800&fit=contain&q=85" />
+```
+
+#### Özel Boyut ve Format
+```html
+<!-- WebP formatında, 1200px genişlik -->
+<img src="https://app.listcampus.com/glide/universities%2Fmit%2Fphotos%2Fphoto.jpg?w=1200&fm=webp&q=90" />
+
+<!-- Greyscale filtresi -->
+<img src="https://app.listcampus.com/glide/universities%2Fmit%2Fphotos%2Fphoto.jpg?w=800&filt=greyscale" />
+```
+
+#### Responsive Image (srcset)
+```html
+<img 
+  src="https://app.listcampus.com/glide/universities%2Fmit%2Fphotos%2Fphoto.jpg?w=400&q=85"
+  srcset="
+    https://app.listcampus.com/glide/universities%2Fmit%2Fphotos%2Fphoto.jpg?w=400&q=85 400w,
+    https://app.listcampus.com/glide/universities%2Fmit%2Fphotos%2Fphoto.jpg?w=800&q=85 800w,
+    https://app.listcampus.com/glide/universities%2Fmit%2Fphotos%2Fphoto.jpg?w=1600&q=90 1600w
+  "
+  sizes="(max-width: 400px) 400px, (max-width: 800px) 800px, 1600px"
+  alt="University Photo"
+/>
+```
+
+### Performans Notları
+
+- Glide görselleri otomatik olarak cache'ler
+- İlk istekte görsel işlenir ve cache'lenir
+- Sonraki istekler cache'den servis edilir
+- Cache `storage/app/glide-cache` dizininde saklanır
+- Production'da cache temizleme stratejisi uygulanmalıdır
+
+---
+
 ## Majors Endpoints
 
 ### 1. Major Listesi

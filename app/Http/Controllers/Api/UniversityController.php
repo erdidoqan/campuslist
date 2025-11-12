@@ -298,9 +298,38 @@ class UniversityController extends Controller
             'campus_life' => $university->campus_life,
             'contact' => $university->contact,
             'faq' => $university->faq,
+            'media' => $university->media()->get()->map(function ($media) {
+                return [
+                    'id' => $media->id,
+                    'uuid' => $media->uuid,
+                    'url' => $media->url,
+                    'mime_type' => $media->mime_type,
+                    'size' => $media->size,
+                    'size_human' => $this->formatMediaSize($media->size),
+                    'meta' => $media->meta,
+                ];
+            }),
             'created_at' => $university->created_at?->toISOString(),
             'updated_at' => $university->updated_at?->toISOString(),
         ];
+    }
+
+    /**
+     * Format bytes to human readable format
+     *
+     * @param  int|null  $bytes
+     * @return string
+     */
+    protected function formatMediaSize(?int $bytes): string
+    {
+        if ($bytes === null || $bytes === 0) {
+            return '0 B';
+        }
+
+        $units = ['B', 'KB', 'MB', 'GB', 'TB'];
+        $i = floor(log($bytes, 1024));
+
+        return round($bytes / pow(1024, $i), 2).' '.$units[$i];
     }
 }
 
