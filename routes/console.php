@@ -24,7 +24,7 @@ Schedule::command('serpapi:fetch-trends')
         \Log::info('serpapi:fetch-trends tamamlandı, openai:fetch-university-data başlatılıyor...');
         
         // Trends fetch'ten sonra university data'yı güncelle
-        $exitCode = Artisan::call('openai:fetch-university-data', ['--limit' => 20]);
+        $exitCode = Artisan::call('openai:fetch-university-data', ['--limit' => 25]);
         
         \Log::info('openai:fetch-university-data tamamlandı', [
             'exit_code' => $exitCode,
@@ -34,11 +34,36 @@ Schedule::command('serpapi:fetch-trends')
         \Log::info('universities:score başlatılıyor...');
         
         // University data'dan sonra scoring yap
-        $exitCode = Artisan::call('universities:score', ['--limit' => 20]);
+        $exitCode = Artisan::call('universities:score', ['--limit' => 25]);
         
         \Log::info('universities:score tamamlandı', [
             'exit_code' => $exitCode,
         ]);
+    })
+    ->then(function () {
+        \Log::info('Revalidate isteği gönderiliyor...');
+        
+        try {
+            // Tüm işler bittikten sonra revalidate isteği at
+            $response = \Illuminate\Support\Facades\Http::timeout(30)
+                ->post('https://www.greetingbirds.com/api/university/revalidate');
+            
+            if ($response->successful()) {
+                \Log::info('Revalidate isteği başarılı', [
+                    'status' => $response->status(),
+                    'body' => $response->body(),
+                ]);
+            } else {
+                \Log::warning('Revalidate isteği başarısız', [
+                    'status' => $response->status(),
+                    'body' => $response->body(),
+                ]);
+            }
+        } catch (\Exception $e) {
+            \Log::error('Revalidate isteği gönderilirken hata oluştu', [
+                'error' => $e->getMessage(),
+            ]);
+        }
     })
     ->after(function () {
         \Log::info('University Data Pipeline tamamlandı.', [
