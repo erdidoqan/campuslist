@@ -623,9 +623,9 @@ curl -X GET "https://app.listcampus.com/api/v1/states?region_code=US&min_univers
 
 ---
 
-### 3. State Detayı
+### 3. State'e Göre Üniversite Listesi
 
-Belirli bir state'in detaylarını gösterir.
+Belirli bir state'deki üniversiteleri listeler.
 
 **Endpoint:** `GET /api/v1/states/{administrativeArea}`
 
@@ -635,10 +635,22 @@ Belirli bir state'in detaylarını gösterir.
 |-----------|-----|----------|
 | `administrativeArea` | string | State/eyalet/il adı |
 
+**Query Parametreleri:**
+
+| Parametre | Tip | Açıklama | Örnek |
+|-----------|-----|----------|-------|
+| `locality` | string | Şehir filtresi | `Los Angeles` |
+| `type` | string | Üniversite tipi | `Public`, `Private` |
+| `search` | string | İsim araması | `University` |
+| `sort_by` | string | Sıralama alanı | `name`, `founded`, `acceptance_rate`, `enrollment_total`, `tuition_undergraduate` |
+| `sort_order` | string | Sıralama yönü | `asc`, `desc` |
+| `per_page` | integer | Sayfa başına kayıt (max: 100, default: 15) | `20` |
+| `page` | integer | Sayfa numarası | `1` |
+
 **Örnek İstek:**
 
 ```bash
-curl -X GET "https://app.listcampus.com/api/v1/states/California" \
+curl -X GET "https://app.listcampus.com/api/v1/states/California?type=Private&sort_by=acceptance_rate&sort_order=asc&per_page=20" \
   -H "Authorization: Bearer {your_token}" \
   -H "Accept: application/json"
 ```
@@ -648,25 +660,46 @@ curl -X GET "https://app.listcampus.com/api/v1/states/California" \
 ```json
 {
   "success": true,
-  "data": {
+  "data": [
+    {
+      "id": 1,
+      "name": "Stanford University",
+      "slug": "stanford-university",
+      "short_name": "Stanford",
+      "locality": "Stanford",
+      "website": "https://www.stanford.edu",
+      "type": "Private",
+      "overall_grade": "A+",
+      "acceptance_rate": 4,
+      "enrollment_total": 17249,
+      "tuition_undergraduate": 56169,
+      "tuition_currency": "USD",
+      "founded_year": "1885"
+    },
+    {
+      "id": 2,
+      "name": "University of Southern California",
+      "slug": "university-of-southern-california",
+      "short_name": "USC",
+      "locality": "Los Angeles",
+      "website": "https://www.usc.edu",
+      "type": "Private",
+      "overall_grade": "A",
+      "acceptance_rate": 12,
+      "enrollment_total": 47310,
+      "tuition_undergraduate": 60446,
+      "tuition_currency": "USD",
+      "founded_year": "1880"
+    }
+  ],
+  "meta": {
     "administrative_area": "California",
-    "region_code": "US",
-    "universities_count": 450,
-    "cities_count": 85,
-    "top_cities": [
-      {
-        "locality": "Los Angeles",
-        "universities_count": 45
-      },
-      {
-        "locality": "San Francisco",
-        "universities_count": 32
-      },
-      {
-        "locality": "San Diego",
-        "universities_count": 28
-      }
-    ]
+    "current_page": 1,
+    "last_page": 23,
+    "per_page": 20,
+    "total": 450,
+    "from": 1,
+    "to": 20
   }
 }
 ```

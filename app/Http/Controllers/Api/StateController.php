@@ -60,7 +60,7 @@ class StateController extends Controller
     }
 
     /**
-     * Show state details
+     * List universities in a specific state
      *
      * @param  Request  $request
      * @param  string  $administrativeArea
@@ -68,48 +68,91 @@ class StateController extends Controller
      */
     public function show(Request $request, string $administrativeArea): JsonResponse
     {
-        // Get state info
-        $stateInfo = University::select('administrative_area', 'region_code')
-            ->selectRaw('COUNT(*) as universities_count')
-            ->selectRaw('COUNT(DISTINCT locality) as cities_count')
-            ->where('administrative_area', $administrativeArea)
-            ->groupBy('administrative_area', 'region_code')
-            ->first();
+        // Get universities in this state
+        $query = University::query()
+            ->with(['majorsRelation', 'notableMajorsRelation', 'score'])
+            ->where('administrative_area', $administrativeArea);
 
-        if (! $stateInfo) {
+        // Apply additional filters from request
+        if ($request->has('locality')) {
+            $query->where('locality', 'like', "%{$request->get('locality')}%");
+        }
+
+        if ($request->has('type')) {
+            $query->where('type', $request->get('type'));
+        }
+
+        if ($request->has('search')) {
+            $search = $request->get('search');
+            $query->where(function ($q) use ($search) {
+                $q->where('name', 'like', "%{$search}%")
+                    ->orWhere('short_name', 'like', "%{$search}%");
+            });
+        }
+
+        // Sorting
+        $sortBy = $request->get('sort_by', 'name');
+        $sortOrder = $request->get('sort_order', 'asc');
+
+        $allowedSortFields = ['name', 'founded', 'acceptance_rate', 'enrollment_total', 'tuition_undergraduate'];
+
+        if (in_array($sortBy, $allowedSortFields, true)) {
+            $query->orderBy($sortBy, $sortOrder === 'desc' ? 'desc' : 'asc');
+        } else {
+            $query->orderBy('name', 'asc');
+        }
+
+        // Pagination
+        $perPage = min((int) $request->get('per_page', 15), 100);
+        $universities = $query->paginate($perPage);
+
+        if ($universities->isEmpty() && $universities->currentPage() === 1) {
             return response()->json([
                 'success' => false,
-                'message' => 'State bulunamadı.',
+                'message' => 'Bu state için üniversite bulunamadı.',
             ], 404);
         }
 
-        // Get top cities in this state
-        $topCities = University::select('locality')
-            ->selectRaw('COUNT(*) as universities_count')
-            ->where('administrative_area', $administrativeArea)
-            ->whereNotNull('locality')
-            ->where('locality', '!=', '')
-            ->groupBy('locality')
-            ->orderByDesc('universities_count')
-            ->limit(10)
-            ->get()
-            ->map(function ($city) use ($administrativeArea, $stateInfo) {
-                return [
-                    'locality' => $city->locality,
-                    'universities_count' => $city->universities_count,
-                ];
-            });
-
         return response()->json([
             'success' => true,
-            'data' => [
-                'administrative_area' => $stateInfo->administrative_area,
-                'region_code' => $stateInfo->region_code,
-                'universities_count' => $stateInfo->universities_count,
-                'cities_count' => $stateInfo->cities_count,
-                'top_cities' => $topCities,
+            'data' => $universities->map(function ($university) {
+                return $this->formatUniversity($university);
+            }),
+            'meta' => [
+                'administrative_area' => $administrativeArea,
+                'current_page' => $universities->currentPage(),
+                'last_page' => $universities->lastPage(),
+                'per_page' => $universities->perPage(),
+                'total' => $universities->total(),
+                'from' => $universities->firstItem(),
+                'to' => $universities->lastItem(),
             ],
         ]);
+    }
+
+    /**
+     * Format university data (simplified for state listing)
+     *
+     * @param  \App\Models\University  $university
+     * @return array
+     */
+    protected function formatUniversity($university): array
+    {
+        return [
+            'id' => $university->id,
+            'name' => $university->name,
+            'slug' => $university->slug,
+            'short_name' => $university->short_name,
+            'locality' => $university->locality,
+            'website' => $university->website,
+            'type' => $university->type,
+            'overall_grade' => $university->score?->overall_grade,
+            'acceptance_rate' => $university->acceptance_rate,
+            'enrollment_total' => $university->enrollment_total,
+            'tuition_undergraduate' => $university->tuition_undergraduate,
+            'tuition_currency' => $university->tuition_currency,
+            'founded_year' => $university->founded?->format('Y'),
+        ];
     }
 
     /**
