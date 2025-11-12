@@ -9,19 +9,46 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 // Scheduled Tasks
-// ABD gündüz saatleri (9:00-18:00 EST) arasında her saat çalışan task chain
+// ABD gündüz saatleri (9:00-21:00 EST) arasında her saat çalışan task chain
 Schedule::command('serpapi:fetch-trends')
     ->hourly()
     ->between('9:00', '21:00')
     ->timezone('America/New_York')
-    ->then(function () {
-        // Trends fetch'ten sonra university data'yı güncelle
-        Artisan::call('openai:fetch-university-data', ['--limit' => 20]);
+    ->before(function () {
+        \Log::info('University Data Pipeline başlatılıyor...', [
+            'time' => now()->toDateTimeString(),
+            'timezone' => 'America/New_York',
+        ]);
     })
     ->then(function () {
+        \Log::info('serpapi:fetch-trends tamamlandı, openai:fetch-university-data başlatılıyor...');
+        
+        // Trends fetch'ten sonra university data'yı güncelle
+        $exitCode = Artisan::call('openai:fetch-university-data', ['--limit' => 20]);
+        
+        \Log::info('openai:fetch-university-data tamamlandı', [
+            'exit_code' => $exitCode,
+        ]);
+    })
+    ->then(function () {
+        \Log::info('universities:score başlatılıyor...');
+        
         // University data'dan sonra scoring yap
-        Artisan::call('universities:score', ['--limit' => 20]);
+        $exitCode = Artisan::call('universities:score', ['--limit' => 20]);
+        
+        \Log::info('universities:score tamamlandı', [
+            'exit_code' => $exitCode,
+        ]);
+    })
+    ->after(function () {
+        \Log::info('University Data Pipeline tamamlandı.', [
+            'completed_at' => now()->toDateTimeString(),
+        ]);
+    })
+    ->onFailure(function () {
+        \Log::error('University Data Pipeline başarısız oldu!');
     })
     ->name('university-data-pipeline')
     ->withoutOverlapping()
-    ->onOneServer();
+    ->onOneServer()
+    ->appendOutputTo(storage_path('logs/schedule.log'));
