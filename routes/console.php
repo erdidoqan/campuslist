@@ -9,11 +9,10 @@ Artisan::command('inspire', function () {
 })->purpose('Display an inspiring quote');
 
 // Scheduled Tasks
-// ABD gündüz saatleri (9:00-21:00 EST) arasında her saat çalışan task chain
+// ABD gündüz saatleri (9:00-21:00 EST) arasında her dakika çalışan task chain
+// DEBUG: Geçici olarak timezone kontrolü kaldırıldı, her zaman çalışacak
 Schedule::command('serpapi:fetch-trends')
     ->everyMinute()
-    ->between('9:00', '21:00')
-    ->timezone('America/New_York')
     ->before(function () {
         \Log::info('University Data Pipeline başlatılıyor...', [
             'time' => now()->toDateTimeString(),
