@@ -17,7 +17,7 @@ class ScoreUniversities extends Command
      * @var string
      */
     protected $signature = 'universities:score 
-                            {--limit=10 : İşlenecek maksimum üniversite sayısı}
+                            {--limit=25 : İşlenecek maksimum üniversite sayısı}
                             {--force : Mevcut puanları da güncelle}
                             {--university-id= : Belirli bir üniversiteyi puanla}';
 

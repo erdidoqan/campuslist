@@ -20,7 +20,7 @@ class FetchUniversityDataFromOpenAI extends Command
      * @var string
      */
     protected $signature = 'openai:fetch-university-data 
-                            {--limit=10 : İşlenecek maksimum üniversite sayısı}
+                            {--limit=25 : İşlenecek maksimum üniversite sayısı}
                             {--force : Mevcut verileri de güncelle}';
 
     /**
