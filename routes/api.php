@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\MajorController;
 use App\Http\Controllers\Api\MediaController;
+use App\Http\Controllers\Api\StateController;
 use App\Http\Controllers\Api\UniversityController;
 use Illuminate\Support\Facades\Route;
 
@@ -25,6 +26,11 @@ Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
     Route::get('media', [MediaController::class, 'index']);
     Route::get('media/{id}', [MediaController::class, 'show']);
     Route::get('universities/{universityId}/media', [MediaController::class, 'forUniversity']);
+
+    // Location endpoints
+    Route::get('countries', [StateController::class, 'countries']);
+    Route::get('states', [StateController::class, 'index']);
+    Route::get('states/{administrativeArea}/cities', [StateController::class, 'cities']);
 
     // Auth endpoints (protected)
     Route::post('auth/logout', [AuthController::class, 'logout']);

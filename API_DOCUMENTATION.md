@@ -526,6 +526,158 @@ Media response'larında `glide_urls` objesi içinde şu hazır boyutlar bulunur:
 
 ---
 
+## Location Endpoints
+
+### 1. Ülke Listesi (Countries)
+
+Tüm ülkeleri region_code (ISO 3166-1 alpha-2) ile listeler.
+
+**Endpoint:** `GET /api/v1/countries`
+
+**Örnek İstek:**
+
+```bash
+curl -X GET "https://app.listcampus.com/api/v1/countries" \
+  -H "Authorization: Bearer {your_token}" \
+  -H "Accept: application/json"
+```
+
+**Örnek Response:**
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "region_code": "US",
+      "states_count": 50,
+      "universities_count": 4500
+    },
+    {
+      "region_code": "GB",
+      "states_count": 4,
+      "universities_count": 150
+    },
+    {
+      "region_code": "TR",
+      "states_count": 81,
+      "universities_count": 200
+    }
+  ],
+  "meta": {
+    "total": 3
+  }
+}
+```
+
+---
+
+### 2. State Listesi (Administrative Areas)
+
+Tüm state'leri (eyaletler/iller) listeler.
+
+**Endpoint:** `GET /api/v1/states`
+
+**Query Parametreleri:**
+
+| Parametre | Tip | Açıklama | Örnek |
+|-----------|-----|----------|-------|
+| `region_code` | string | Ülke koduna göre filtreleme | `US`, `TR` |
+| `min_universities` | integer | Minimum üniversite sayısına göre filtreleme | `5` |
+
+**Örnek İstek:**
+
+```bash
+curl -X GET "https://app.listcampus.com/api/v1/states?region_code=US&min_universities=10" \
+  -H "Authorization: Bearer {your_token}" \
+  -H "Accept: application/json"
+```
+
+**Örnek Response:**
+
+```json
+{
+  "success": true,
+  "data": [
+    {
+      "administrative_area": "California",
+      "region_code": "US",
+      "universities_count": 450
+    },
+    {
+      "administrative_area": "Texas",
+      "region_code": "US",
+      "universities_count": 380
+    },
+    {
+      "administrative_area": "New York",
+      "region_code": "US",
+      "universities_count": 320
+    }
+  ],
+  "meta": {
+    "total": 50
+  }
+}
+```
+
+---
+
+### 3. Şehir Listesi (Cities by State)
+
+Belirli bir state içindeki şehirleri listeler.
+
+**Endpoint:** `GET /api/v1/states/{administrativeArea}/cities`
+
+**Path Parametreleri:**
+
+| Parametre | Tip | Açıklama |
+|-----------|-----|----------|
+| `administrativeArea` | string | State/eyalet/il adı |
+
+**Örnek İstek:**
+
+```bash
+curl -X GET "https://app.listcampus.com/api/v1/states/California/cities" \
+  -H "Authorization: Bearer {your_token}" \
+  -H "Accept: application/json"
+```
+
+**Örnek Response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "administrative_area": "California",
+    "region_code": "US",
+    "cities": [
+      {
+        "locality": "Los Angeles",
+        "administrative_area": "California",
+        "region_code": "US",
+        "universities_count": 45
+      },
+      {
+        "locality": "San Francisco",
+        "administrative_area": "California",
+        "region_code": "US",
+        "universities_count": 32
+      },
+      {
+        "locality": "San Diego",
+        "administrative_area": "California",
+        "region_code": "US",
+        "universities_count": 28
+      }
+    ],
+    "total_cities": 50
+  }
+}
+```
+
+---
+
 ## Majors Endpoints
 
 ### 1. Major Listesi
