@@ -11,7 +11,7 @@ Artisan::command('inspire', function () {
 // Scheduled Tasks
 // ABD gündüz saatleri (9:00-21:00 EST) arasında her saat çalışan task chain
 Schedule::command('serpapi:fetch-trends')
-    ->hourly()
+    ->everyMinute()
     ->between('9:00', '21:00')
     ->timezone('America/New_York')
     ->before(function () {
