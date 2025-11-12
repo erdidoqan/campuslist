@@ -3,9 +3,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Media;
+use App\Services\Glide\LaravelResponseFactory;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
-use League\Glide\Responses\LaravelResponseFactory;
 use League\Glide\ServerFactory;
 
 class GlideController extends Controller
@@ -19,18 +20,11 @@ class GlideController extends Controller
      */
     public function __invoke(Request $request, string $hashName)
     {
-        // Find media by hash_name (filename with extension)
-        // hash_name is unique and matches the CDN filename (e.g., "69fb0f11-a4f2-4064-bcdf-d85d92be4764-7ZTulWaBfAOnVk0g.jpeg")
+        // Find media by hash_name
         $media = Media::where('hash_name', $hashName)->first();
 
         if (! $media) {
             abort(404, 'Medya bulunamadı.');
-        }
-
-        // Check if file exists on disk
-        $disk = Storage::disk($media->disk);
-        if (! $disk->exists($media->path)) {
-            abort(404, 'Dosya bulunamadı.');
         }
 
         // Only process images
@@ -38,82 +32,72 @@ class GlideController extends Controller
             abort(400, 'Bu dosya tipi desteklenmiyor.');
         }
 
-        // For remote disks (like R2), we need to use a local source
-        // Glide works with Flysystem adapters, so we'll use local disk for both source and cache
-        $localDisk = Storage::disk('local');
-        $tempSourcePath = 'glide-temp/'.$media->hash_name;
-        $sourcePath = $media->path;
-
-        // If file is on remote disk, copy to local temp first
-        if ($media->disk !== 'local' && $media->disk !== 'public') {
-            try {
-                // Download from remote disk and store in local temp
-                $fileContents = $disk->get($media->path);
-                $localDisk->put($tempSourcePath, $fileContents);
-                $sourcePath = $tempSourcePath;
-            } catch (\Exception $e) {
-                \Log::error('Glide: Dosya okunamadı', [
-                    'path' => $media->path,
-                    'disk' => $media->disk,
-                    'error' => $e->getMessage(),
-                ]);
-                abort(404, 'Dosya okunamadı.');
-            }
-        } else {
-            // For local disks, use the file directly
-            $sourcePath = $media->path;
+        // Check if file exists on disk
+        $sourceDisk = Storage::disk($media->disk);
+        if (! $sourceDisk->exists($media->path)) {
+            abort(404, 'Dosya R2\'de bulunamadı.');
         }
 
-        // Create Glide server with Flysystem adapters
-        // According to Glide docs: source and cache should be Flysystem adapters
+        // Use public disk for Glide source and cache
+        $publicDisk = Storage::disk('public');
+        $tempPath = 'glide-source/'.$media->hash_name;
+
+        // Copy file from R2 to local public disk
+        try {
+            $fileContents = $sourceDisk->get($media->path);
+            $publicDisk->put($tempPath, $fileContents);
+        } catch (\Exception $e) {
+            Log::error('Glide: R2\'den dosya kopyalanamadı', [
+                'path' => $media->path,
+                'error' => $e->getMessage(),
+            ]);
+            abort(500, 'Dosya işlenemedi.');
+        }
+
+        // Create Glide server
         $server = ServerFactory::create([
-            'response' => new LaravelResponseFactory($request),
-            'source' => $localDisk->getDriver(),
-            'cache' => $localDisk->getDriver(),
+            'response' => new LaravelResponseFactory(),
+            'source' => $publicDisk->getDriver(),
+            'cache' => $publicDisk->getDriver(),
             'cache_path_prefix' => 'glide-cache',
             'driver' => config('laravel-glide.driver', 'gd'),
         ]);
 
-        // Get Glide parameters from request
+        // Get Glide parameters
         $params = $request->only(['w', 'h', 'fit', 'q', 'fm', 'filt', 'blur', 'pixel', 'dpr']);
 
         // Set defaults
-        if (! isset($params['fit'])) {
-            $params['fit'] = 'contain';
-        }
-
-        if (! isset($params['q'])) {
-            $params['q'] = 90;
-        }
+        $params['fit'] = $params['fit'] ?? 'contain';
+        $params['q'] = $params['q'] ?? 90;
 
         // Return optimized image
         try {
-            $response = $server->getImageResponse($sourcePath, $params);
+            $response = $server->getImageResponse($tempPath, $params);
         } catch (\Exception $e) {
-            \Log::error('Glide: Görsel işlenemedi', [
-                'path' => $sourcePath,
+            Log::error('Glide: Görsel işlenemedi', [
+                'temp_path' => $tempPath,
                 'params' => $params,
                 'error' => $e->getMessage(),
             ]);
             
-            // Clean up temp file if it was created
-            if ($media->disk !== 'local' && $media->disk !== 'public' && $localDisk->exists($tempSourcePath)) {
-                $localDisk->delete($tempSourcePath);
+            // Clean up
+            if ($publicDisk->exists($tempPath)) {
+                $publicDisk->delete($tempPath);
             }
             
-            abort(500, 'Görsel işlenemedi: '.$e->getMessage());
+            abort(500, 'Görsel işlenemedi.');
         }
 
-        // Clean up temp file after response is sent (for remote disks)
-        if ($media->disk !== 'local' && $media->disk !== 'public' && $localDisk->exists($tempSourcePath)) {
-            register_shutdown_function(function () use ($localDisk, $tempSourcePath) {
-                try {
-                    $localDisk->delete($tempSourcePath);
-                } catch (\Exception $e) {
-                    // Ignore cleanup errors
+        // Clean up temp file after response
+        register_shutdown_function(function () use ($publicDisk, $tempPath) {
+            try {
+                if ($publicDisk->exists($tempPath)) {
+                    $publicDisk->delete($tempPath);
                 }
-            });
-        }
+            } catch (\Exception $e) {
+                // Ignore cleanup errors
+            }
+        });
 
         return $response;
     }
