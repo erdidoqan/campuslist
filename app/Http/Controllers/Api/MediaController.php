@@ -235,7 +235,8 @@ class MediaController extends Controller
             return [];
         }
 
-        $baseUrl = route('glide', ['path' => urlencode($media->path)]);
+        // Use hash_name for cleaner URLs (matches CDN filename)
+        $baseUrl = route('glide', ['hashName' => $media->hash_name]);
 
         return [
             'thumbnail' => $baseUrl.'?w=150&h=150&fit=crop&q=85',

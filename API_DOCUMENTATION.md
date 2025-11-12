@@ -299,12 +299,12 @@ curl -X GET "https://app.listcampus.com/api/v1/media?university_id=1&mime_type=i
       "path": "universities/massachusetts-institute-of-technology/photos/mit-photo-abc123.jpg",
       "url": "https://your-r2-domain.com/universities/massachusetts-institute-of-technology/photos/mit-photo-abc123.jpg",
       "glide_urls": {
-        "thumbnail": "https://app.listcampus.com/glide/universities%2Fmassachusetts-institute-of-technology%2Fphotos%2Fmit-photo-abc123.jpg?w=150&h=150&fit=crop&q=85",
-        "small": "https://app.listcampus.com/glide/universities%2Fmassachusetts-institute-of-technology%2Fphotos%2Fmit-photo-abc123.jpg?w=400&h=400&fit=contain&q=85",
-        "medium": "https://app.listcampus.com/glide/universities%2Fmassachusetts-institute-of-technology%2Fphotos%2Fmit-photo-abc123.jpg?w=800&h=800&fit=contain&q=85",
-        "large": "https://app.listcampus.com/glide/universities%2Fmassachusetts-institute-of-technology%2Fphotos%2Fmit-photo-abc123.jpg?w=1600&h=1600&fit=contain&q=90",
-        "original": "https://your-r2-domain.com/universities/massachusetts-institute-of-technology/photos/mit-photo-abc123.jpg",
-        "custom": "https://app.listcampus.com/glide/universities%2Fmassachusetts-institute-of-technology%2Fphotos%2Fmit-photo-abc123.jpg"
+        "thumbnail": "https://app.listcampus.com/glide/69fb0f11-a4f2-4064-bcdf-d85d92be4764-7ZTulWaBfAOnVk0g.jpeg?w=150&h=150&fit=crop&q=85",
+        "small": "https://app.listcampus.com/glide/69fb0f11-a4f2-4064-bcdf-d85d92be4764-7ZTulWaBfAOnVk0g.jpeg?w=400&h=400&fit=contain&q=85",
+        "medium": "https://app.listcampus.com/glide/69fb0f11-a4f2-4064-bcdf-d85d92be4764-7ZTulWaBfAOnVk0g.jpeg?w=800&h=800&fit=contain&q=85",
+        "large": "https://app.listcampus.com/glide/69fb0f11-a4f2-4064-bcdf-d85d92be4764-7ZTulWaBfAOnVk0g.jpeg?w=1600&h=1600&fit=contain&q=90",
+        "original": "https://cdn.icerikplanla.com/universities/massachusetts-institute-of-technology/photos/69fb0f11-a4f2-4064-bcdf-d85d92be4764-7ZTulWaBfAOnVk0g.jpeg",
+        "custom": "https://app.listcampus.com/glide/69fb0f11-a4f2-4064-bcdf-d85d92be4764-7ZTulWaBfAOnVk0g.jpeg"
       },
       "directory": "universities/massachusetts-institute-of-technology/photos",
       "meta": {
@@ -406,12 +406,12 @@ curl -X GET "https://app.listcampus.com/api/v1/universities/1/media" \
         "path": "universities/massachusetts-institute-of-technology/photos/mit-photo-abc123.jpg",
         "url": "https://your-r2-domain.com/universities/massachusetts-institute-of-technology/photos/mit-photo-abc123.jpg",
         "glide_urls": {
-          "thumbnail": "https://app.listcampus.com/glide/universities%2Fmassachusetts-institute-of-technology%2Fphotos%2Fmit-photo-abc123.jpg?w=150&h=150&fit=crop&q=85",
-          "small": "https://app.listcampus.com/glide/universities%2Fmassachusetts-institute-of-technology%2Fphotos%2Fmit-photo-abc123.jpg?w=400&h=400&fit=contain&q=85",
-          "medium": "https://app.listcampus.com/glide/universities%2Fmassachusetts-institute-of-technology%2Fphotos%2Fmit-photo-abc123.jpg?w=800&h=800&fit=contain&q=85",
-          "large": "https://app.listcampus.com/glide/universities%2Fmassachusetts-institute-of-technology%2Fphotos%2Fmit-photo-abc123.jpg?w=1600&h=1600&fit=contain&q=90",
-          "original": "https://your-r2-domain.com/universities/massachusetts-institute-of-technology/photos/mit-photo-abc123.jpg",
-          "custom": "https://app.listcampus.com/glide/universities%2Fmassachusetts-institute-of-technology%2Fphotos%2Fmit-photo-abc123.jpg"
+          "thumbnail": "https://app.listcampus.com/glide/69fb0f11-a4f2-4064-bcdf-d85d92be4764-7ZTulWaBfAOnVk0g.jpeg?w=150&h=150&fit=crop&q=85",
+          "small": "https://app.listcampus.com/glide/69fb0f11-a4f2-4064-bcdf-d85d92be4764-7ZTulWaBfAOnVk0g.jpeg?w=400&h=400&fit=contain&q=85",
+          "medium": "https://app.listcampus.com/glide/69fb0f11-a4f2-4064-bcdf-d85d92be4764-7ZTulWaBfAOnVk0g.jpeg?w=800&h=800&fit=contain&q=85",
+          "large": "https://app.listcampus.com/glide/69fb0f11-a4f2-4064-bcdf-d85d92be4764-7ZTulWaBfAOnVk0g.jpeg?w=1600&h=1600&fit=contain&q=90",
+          "original": "https://cdn.icerikplanla.com/universities/massachusetts-institute-of-technology/photos/69fb0f11-a4f2-4064-bcdf-d85d92be4764-7ZTulWaBfAOnVk0g.jpeg",
+          "custom": "https://app.listcampus.com/glide/69fb0f11-a4f2-4064-bcdf-d85d92be4764-7ZTulWaBfAOnVk0g.jpeg"
         },
         "directory": "universities/massachusetts-institute-of-technology/photos",
         "meta": {
@@ -444,8 +444,10 @@ Tüm görseller Glide ile optimize edilebilir. Media response'larında `glide_ur
 ### Glide URL Formatı
 
 ```
-GET /glide/{path}?w={width}&h={height}&fit={fit}&q={quality}&fm={format}
+GET /glide/{hashName}?w={width}&h={height}&fit={fit}&q={quality}&fm={format}
 ```
+
+**Not:** URL'ler Media `hash_name` (dosya adı) kullanarak oluşturulur. Bu dosya adı CDN'deki dosya adıyla aynıdır ve unique'dir. Örnek: `69fb0f11-a4f2-4064-bcdf-d85d92be4764-7ZTulWaBfAOnVk0g.jpeg`
 
 ### Glide Parametreleri
 
@@ -485,29 +487,29 @@ Media response'larında `glide_urls` objesi içinde şu hazır boyutlar bulunur:
 #### Hazır Boyut Kullanımı
 ```html
 <!-- Thumbnail -->
-<img src="https://app.listcampus.com/glide/universities%2Fmit%2Fphotos%2Fphoto.jpg?w=150&h=150&fit=crop&q=85" />
+<img src="https://app.listcampus.com/glide/69fb0f11-a4f2-4064-bcdf-d85d92be4764-7ZTulWaBfAOnVk0g.jpeg?w=150&h=150&fit=crop&q=85" />
 
 <!-- Medium -->
-<img src="https://app.listcampus.com/glide/universities%2Fmit%2Fphotos%2Fphoto.jpg?w=800&h=800&fit=contain&q=85" />
+<img src="https://app.listcampus.com/glide/69fb0f11-a4f2-4064-bcdf-d85d92be4764-7ZTulWaBfAOnVk0g.jpeg?w=800&h=800&fit=contain&q=85" />
 ```
 
 #### Özel Boyut ve Format
 ```html
 <!-- WebP formatında, 1200px genişlik -->
-<img src="https://app.listcampus.com/glide/universities%2Fmit%2Fphotos%2Fphoto.jpg?w=1200&fm=webp&q=90" />
+<img src="https://app.listcampus.com/glide/69fb0f11-a4f2-4064-bcdf-d85d92be4764-7ZTulWaBfAOnVk0g.jpeg?w=1200&fm=webp&q=90" />
 
 <!-- Greyscale filtresi -->
-<img src="https://app.listcampus.com/glide/universities%2Fmit%2Fphotos%2Fphoto.jpg?w=800&filt=greyscale" />
+<img src="https://app.listcampus.com/glide/69fb0f11-a4f2-4064-bcdf-d85d92be4764-7ZTulWaBfAOnVk0g.jpeg?w=800&filt=greyscale" />
 ```
 
 #### Responsive Image (srcset)
 ```html
 <img 
-  src="https://app.listcampus.com/glide/universities%2Fmit%2Fphotos%2Fphoto.jpg?w=400&q=85"
+  src="https://app.listcampus.com/glide/69fb0f11-a4f2-4064-bcdf-d85d92be4764-7ZTulWaBfAOnVk0g.jpeg?w=400&q=85"
   srcset="
-    https://app.listcampus.com/glide/universities%2Fmit%2Fphotos%2Fphoto.jpg?w=400&q=85 400w,
-    https://app.listcampus.com/glide/universities%2Fmit%2Fphotos%2Fphoto.jpg?w=800&q=85 800w,
-    https://app.listcampus.com/glide/universities%2Fmit%2Fphotos%2Fphoto.jpg?w=1600&q=90 1600w
+    https://app.listcampus.com/glide/69fb0f11-a4f2-4064-bcdf-d85d92be4764-7ZTulWaBfAOnVk0g.jpeg?w=400&q=85 400w,
+    https://app.listcampus.com/glide/69fb0f11-a4f2-4064-bcdf-d85d92be4764-7ZTulWaBfAOnVk0g.jpeg?w=800&q=85 800w,
+    https://app.listcampus.com/glide/69fb0f11-a4f2-4064-bcdf-d85d92be4764-7ZTulWaBfAOnVk0g.jpeg?w=1600&q=90 1600w
   "
   sizes="(max-width: 400px) 400px, (max-width: 800px) 800px, 1600px"
   alt="University Photo"

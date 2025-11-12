@@ -7,7 +7,7 @@ Route::get('/', function () {
     return view('welcome');
 });
 
-// Glide image optimization route
-Route::get('glide/{path}', GlideController::class)
-    ->where('path', '.*')
+// Glide image optimization route - Use hash_name (filename) for cleaner URLs
+Route::get('glide/{hashName}', GlideController::class)
+    ->where('hashName', '[^/]+')
     ->name('glide');

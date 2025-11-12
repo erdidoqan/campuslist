@@ -14,18 +14,14 @@ class GlideController extends Controller
      * Generate optimized image using Glide
      *
      * @param  Request  $request
-     * @param  string  $path
+     * @param  string  $hashName
      * @return mixed
      */
-    public function __invoke(Request $request, string $path)
+    public function __invoke(Request $request, string $hashName)
     {
-        // Decode path if needed
-        $path = urldecode($path);
-
-        // Find media by path or UUID
-        $media = Media::where('path', $path)
-            ->orWhere('uuid', $path)
-            ->first();
+        // Find media by hash_name (filename with extension)
+        // hash_name is unique and matches the CDN filename (e.g., "69fb0f11-a4f2-4064-bcdf-d85d92be4764-7ZTulWaBfAOnVk0g.jpeg")
+        $media = Media::where('hash_name', $hashName)->first();
 
         if (! $media) {
             abort(404, 'Medya bulunamadı.');
@@ -42,49 +38,41 @@ class GlideController extends Controller
             abort(400, 'Bu dosya tipi desteklenmiyor.');
         }
 
-        // Create temporary cache directory if it doesn't exist
-        $cachePath = storage_path('app/glide-cache');
-        if (! is_dir($cachePath)) {
-            mkdir($cachePath, 0755, true);
-        }
-
-        // For remote disks (like R2), download to temp first
-        $tempSourcePath = null;
+        // For remote disks (like R2), we need to use a local source
+        // Glide works with Flysystem adapters, so we'll use local disk for both source and cache
+        $localDisk = Storage::disk('local');
+        $tempSourcePath = 'glide-temp/'.$media->hash_name;
         $sourcePath = $media->path;
 
+        // If file is on remote disk, copy to local temp first
         if ($media->disk !== 'local' && $media->disk !== 'public') {
-            // Download file to temp directory for processing
-            $tempSourcePath = storage_path('app/temp-glide/'.basename($media->path));
-            $tempDir = dirname($tempSourcePath);
-            
-            if (! is_dir($tempDir)) {
-                mkdir($tempDir, 0755, true);
+            try {
+                // Download from remote disk and store in local temp
+                $fileContents = $disk->get($media->path);
+                $localDisk->put($tempSourcePath, $fileContents);
+                $sourcePath = $tempSourcePath;
+            } catch (\Exception $e) {
+                \Log::error('Glide: Dosya okunamadı', [
+                    'path' => $media->path,
+                    'disk' => $media->disk,
+                    'error' => $e->getMessage(),
+                ]);
+                abort(404, 'Dosya okunamadı.');
             }
-
-            // Download from remote disk
-            $fileContents = $disk->get($media->path);
-            file_put_contents($tempSourcePath, $fileContents);
-            $sourcePath = basename($media->path);
+        } else {
+            // For local disks, use the file directly
+            $sourcePath = $media->path;
         }
 
-        // Create Glide server
-        $serverConfig = [
+        // Create Glide server with Flysystem adapters
+        // According to Glide docs: source and cache should be Flysystem adapters
+        $server = ServerFactory::create([
             'response' => new LaravelResponseFactory($request),
-            'cache' => Storage::disk('local')->getDriver(),
+            'source' => $localDisk->getDriver(),
+            'cache' => $localDisk->getDriver(),
             'cache_path_prefix' => 'glide-cache',
             'driver' => config('laravel-glide.driver', 'gd'),
-        ];
-
-        // Set source based on disk type
-        if ($tempSourcePath) {
-            // Use temp directory as source
-            $serverConfig['source'] = dirname($tempSourcePath);
-        } else {
-            // Use disk driver directly
-            $serverConfig['source'] = $disk->getDriver();
-        }
-
-        $server = ServerFactory::create($serverConfig);
+        ]);
 
         // Get Glide parameters from request
         $params = $request->only(['w', 'h', 'fit', 'q', 'fm', 'filt', 'blur', 'pixel', 'dpr']);
@@ -99,12 +87,31 @@ class GlideController extends Controller
         }
 
         // Return optimized image
-        $response = $server->getImageResponse($sourcePath, $params);
+        try {
+            $response = $server->getImageResponse($sourcePath, $params);
+        } catch (\Exception $e) {
+            \Log::error('Glide: Görsel işlenemedi', [
+                'path' => $sourcePath,
+                'params' => $params,
+                'error' => $e->getMessage(),
+            ]);
+            
+            // Clean up temp file if it was created
+            if ($media->disk !== 'local' && $media->disk !== 'public' && $localDisk->exists($tempSourcePath)) {
+                $localDisk->delete($tempSourcePath);
+            }
+            
+            abort(500, 'Görsel işlenemedi: '.$e->getMessage());
+        }
 
-        // Clean up temp file after response is sent
-        if ($tempSourcePath && file_exists($tempSourcePath)) {
-            register_shutdown_function(function () use ($tempSourcePath) {
-                @unlink($tempSourcePath);
+        // Clean up temp file after response is sent (for remote disks)
+        if ($media->disk !== 'local' && $media->disk !== 'public' && $localDisk->exists($tempSourcePath)) {
+            register_shutdown_function(function () use ($localDisk, $tempSourcePath) {
+                try {
+                    $localDisk->delete($tempSourcePath);
+                } catch (\Exception $e) {
+                    // Ignore cleanup errors
+                }
             });
         }
 
