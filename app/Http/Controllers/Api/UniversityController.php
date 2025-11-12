@@ -19,10 +19,7 @@ class UniversityController extends Controller
      */
     public function index(Request $request): JsonResponse
     {
-        $query = University::query()->with(['majorsRelation', 'notableMajorsRelation']);
-        
-        // Eager load media if needed (optional, can be removed if not needed in list)
-        // $query->with('media');
+        $query = University::query()->with(['majorsRelation', 'notableMajorsRelation', 'score']);
 
         // Search by name
         if ($request->has('search')) {
@@ -191,7 +188,7 @@ class UniversityController extends Controller
      */
     public function show(int $id): JsonResponse
     {
-        $university = University::with(['majorsRelation', 'notableMajorsRelation'])->find($id);
+        $university = University::with(['majorsRelation', 'notableMajorsRelation', 'score'])->find($id);
 
         if (! $university) {
             return response()->json([
@@ -214,7 +211,7 @@ class UniversityController extends Controller
      */
     public function showBySlug(string $slug): JsonResponse
     {
-        $university = University::with(['majorsRelation', 'notableMajorsRelation'])
+        $university = University::with(['majorsRelation', 'notableMajorsRelation', 'score'])
             ->where('slug', $slug)
             ->first();
 
@@ -310,6 +307,10 @@ class UniversityController extends Controller
                 // Sadece görsel dosyalar için glide URL'leri döndür
                 return ! empty($urls);
             })->values(),
+            'score' => $university->score ? [
+                'overall_grade' => $university->score->overall_grade,
+                'ratings' => $university->score->ratings,
+            ] : null,
             'created_at' => $university->created_at?->toISOString(),
             'updated_at' => $university->updated_at?->toISOString(),
         ];

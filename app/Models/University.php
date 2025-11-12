@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class University extends Model
 {
@@ -104,5 +105,13 @@ class University extends Model
     public function media()
     {
         return Media::forUniversity($this->id);
+    }
+
+    /**
+     * Get the score for this university
+     */
+    public function score(): HasOne
+    {
+        return $this->hasOne(UniversityScore::class);
     }
 }
