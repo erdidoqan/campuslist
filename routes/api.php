@@ -30,7 +30,7 @@ Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
     // Location endpoints
     Route::get('countries', [StateController::class, 'countries']);
     Route::get('states', [StateController::class, 'index']);
-    Route::get('states/{administrativeArea}/cities', [StateController::class, 'cities']);
+    Route::get('states/{administrativeArea}', [StateController::class, 'show']);
 
     // Auth endpoints (protected)
     Route::post('auth/logout', [AuthController::class, 'logout']);

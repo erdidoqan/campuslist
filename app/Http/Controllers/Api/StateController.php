@@ -60,6 +60,59 @@ class StateController extends Controller
     }
 
     /**
+     * Show state details
+     *
+     * @param  Request  $request
+     * @param  string  $administrativeArea
+     * @return JsonResponse
+     */
+    public function show(Request $request, string $administrativeArea): JsonResponse
+    {
+        // Get state info
+        $stateInfo = University::select('administrative_area', 'region_code')
+            ->selectRaw('COUNT(*) as universities_count')
+            ->selectRaw('COUNT(DISTINCT locality) as cities_count')
+            ->where('administrative_area', $administrativeArea)
+            ->groupBy('administrative_area', 'region_code')
+            ->first();
+
+        if (! $stateInfo) {
+            return response()->json([
+                'success' => false,
+                'message' => 'State bulunamadı.',
+            ], 404);
+        }
+
+        // Get top cities in this state
+        $topCities = University::select('locality')
+            ->selectRaw('COUNT(*) as universities_count')
+            ->where('administrative_area', $administrativeArea)
+            ->whereNotNull('locality')
+            ->where('locality', '!=', '')
+            ->groupBy('locality')
+            ->orderByDesc('universities_count')
+            ->limit(10)
+            ->get()
+            ->map(function ($city) use ($administrativeArea, $stateInfo) {
+                return [
+                    'locality' => $city->locality,
+                    'universities_count' => $city->universities_count,
+                ];
+            });
+
+        return response()->json([
+            'success' => true,
+            'data' => [
+                'administrative_area' => $stateInfo->administrative_area,
+                'region_code' => $stateInfo->region_code,
+                'universities_count' => $stateInfo->universities_count,
+                'cities_count' => $stateInfo->cities_count,
+                'top_cities' => $topCities,
+            ],
+        ]);
+    }
+
+    /**
      * Get cities (localities) for a specific state
      *
      * @param  Request  $request

@@ -623,7 +623,57 @@ curl -X GET "https://app.listcampus.com/api/v1/states?region_code=US&min_univers
 
 ---
 
-### 3. Şehir Listesi (Cities by State)
+### 3. State Detayı
+
+Belirli bir state'in detaylarını gösterir.
+
+**Endpoint:** `GET /api/v1/states/{administrativeArea}`
+
+**Path Parametreleri:**
+
+| Parametre | Tip | Açıklama |
+|-----------|-----|----------|
+| `administrativeArea` | string | State/eyalet/il adı |
+
+**Örnek İstek:**
+
+```bash
+curl -X GET "https://app.listcampus.com/api/v1/states/California" \
+  -H "Authorization: Bearer {your_token}" \
+  -H "Accept: application/json"
+```
+
+**Örnek Response:**
+
+```json
+{
+  "success": true,
+  "data": {
+    "administrative_area": "California",
+    "region_code": "US",
+    "universities_count": 450,
+    "cities_count": 85,
+    "top_cities": [
+      {
+        "locality": "Los Angeles",
+        "universities_count": 45
+      },
+      {
+        "locality": "San Francisco",
+        "universities_count": 32
+      },
+      {
+        "locality": "San Diego",
+        "universities_count": 28
+      }
+    ]
+  }
+}
+```
+
+---
+
+### 4. Şehir Listesi (Cities by State)
 
 Belirli bir state içindeki şehirleri listeler.
 
