@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
+use App\Models\Media;
 use App\Models\University;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
@@ -19,6 +20,9 @@ class UniversityController extends Controller
     public function index(Request $request): JsonResponse
     {
         $query = University::query()->with(['majorsRelation', 'notableMajorsRelation']);
+        
+        // Eager load media if needed (optional, can be removed if not needed in list)
+        // $query->with('media');
 
         // Search by name
         if ($request->has('search')) {
@@ -165,7 +169,9 @@ class UniversityController extends Controller
 
         return response()->json([
             'success' => true,
-            'data' => $universities->items(),
+            'data' => $universities->map(function ($university) {
+                return $this->formatUniversity($university);
+            }),
             'meta' => [
                 'current_page' => $universities->currentPage(),
                 'last_page' => $universities->lastPage(),
@@ -299,16 +305,11 @@ class UniversityController extends Controller
             'contact' => $university->contact,
             'faq' => $university->faq,
             'media' => $university->media()->get()->map(function ($media) {
-                return [
-                    'id' => $media->id,
-                    'uuid' => $media->uuid,
-                    'url' => $media->url,
-                    'mime_type' => $media->mime_type,
-                    'size' => $media->size,
-                    'size_human' => $this->formatMediaSize($media->size),
-                    'meta' => $media->meta,
-                ];
-            }),
+                return $this->generateGlideUrls($media);
+            })->filter(function ($urls) {
+                // Sadece görsel dosyalar için glide URL'leri döndür
+                return ! empty($urls);
+            })->values(),
             'created_at' => $university->created_at?->toISOString(),
             'updated_at' => $university->updated_at?->toISOString(),
         ];
@@ -330,6 +331,31 @@ class UniversityController extends Controller
         $i = floor(log($bytes, 1024));
 
         return round($bytes / pow(1024, $i), 2).' '.$units[$i];
+    }
+
+    /**
+     * Generate Glide URLs for different sizes
+     *
+     * @param  Media  $media
+     * @return array<string, string>
+     */
+    protected function generateGlideUrls(Media $media): array
+    {
+        // Only generate Glide URLs for images
+        if (! str_starts_with($media->mime_type ?? '', 'image/')) {
+            return [];
+        }
+
+        $baseUrl = route('glide', ['path' => urlencode($media->path)]);
+
+        return [
+            'thumbnail' => $baseUrl.'?w=150&h=150&fit=crop&q=85',
+            'small' => $baseUrl.'?w=400&h=400&fit=contain&q=85',
+            'medium' => $baseUrl.'?w=800&h=800&fit=contain&q=85',
+            'large' => $baseUrl.'?w=1600&h=1600&fit=contain&q=90',
+            'original' => $media->url,
+            'custom' => $baseUrl, // Base URL for custom parameters
+        ];
     }
 }
 
