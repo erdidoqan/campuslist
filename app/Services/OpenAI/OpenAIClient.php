@@ -9,8 +9,8 @@ use Throwable;
 class OpenAIClient
 {
     private const BASE_URL = 'https://api.openai.com/v1';
-    private const PROMPT_ID = 'pmpt_690be6b69b5c8190af5809d395af13cf006fbeb382118543';
-    private const PROMPT_VERSION = '8';
+    private const SEARCH_PROMPT_ID = 'pmpt_690be6b69b5c8190af5809d395af13cf006fbeb382118543';
+    private const SEARCH_PROMPT_VERSION = '9';
     private const SCORE_PROMPT_ID = 'pmpt_6914d25c8f7c81949eee662d3bf856440e2dd7ff1ec623b8';
     private const SCORE_PROMPT_VERSION = '1';
 
@@ -44,8 +44,8 @@ class OpenAIClient
                 ])
                 ->post(self::BASE_URL.'/responses', [
                     'prompt' => [
-                        'id' => self::PROMPT_ID,
-                        'version' => self::PROMPT_VERSION,
+                        'id' => self::SEARCH_PROMPT_ID,
+                        'version' => self::SEARCH_PROMPT_VERSION,
                         'variables' => [
                             'university_name' => $universityName,
                         ],
