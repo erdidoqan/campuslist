@@ -42,7 +42,7 @@ class MajorController extends Controller
         }
 
         // Pagination
-        $perPage = min((int) $request->get('per_page', 50), 100);
+        $perPage = min((int) $request->get('per_page', 50), 1000);
         $majors = $query->paginate($perPage);
 
         return response()->json([
