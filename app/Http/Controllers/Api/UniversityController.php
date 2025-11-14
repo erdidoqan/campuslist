@@ -283,21 +283,16 @@ class UniversityController extends Controller
             'deadlines' => $university->deadlines,
             'majors' => $university->majorsRelation->map(function ($major) {
                 return [
-                    'id' => $major->id,
                     'name' => $major->name,
                     'slug' => $major->slug,
-                    'is_notable' => $major->pivot->is_notable ?? false,
                 ];
             }),
             'notable_majors' => $university->notableMajorsRelation->map(function ($major) {
                 return [
-                    'id' => $major->id,
                     'name' => $major->name,
                     'slug' => $major->slug,
                 ];
             }),
-            'majors_raw' => $university->majors, // JSON backup
-            'notable_majors_raw' => $university->notable_majors, // JSON backup
             'scholarships' => $university->scholarships,
             'housing' => $university->housing,
             'campus_life' => $university->campus_life,
