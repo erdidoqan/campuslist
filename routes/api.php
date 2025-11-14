@@ -20,7 +20,7 @@ Route::prefix('v1')->middleware('auth:sanctum')->group(function () {
 
     // Majors endpoints
     Route::get('majors', [MajorController::class, 'index']);
-    Route::get('majors/{id}', [MajorController::class, 'show']);
+    Route::get('majors/slug/{slug}', [MajorController::class, 'showBySlug']);
 
     // Media endpoints
     Route::get('media', [MediaController::class, 'index']);

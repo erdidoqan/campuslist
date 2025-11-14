@@ -372,10 +372,28 @@ class FetchUniversityDataFromOpenAI extends Command
             }
 
             // Major'ı bul veya oluştur
-            $major = Major::firstOrCreate(
-                ['name' => $majorName],
-                ['slug' => Str::slug($majorName)]
+            $major = Major::firstOrNew(
+                ['name' => $majorName]
             );
+
+            // Eğer yeni major ise veya slug/title/meta_description eksikse güncelle
+            if (! $major->exists || empty($major->slug)) {
+                $major->slug = Str::slug($majorName);
+            }
+
+            // Title ve meta_description yoksa generate et
+            if (empty($major->title)) {
+                $major->title = $major->generateTitle();
+            }
+
+            if (empty($major->meta_description)) {
+                $major->meta_description = $major->generateMetaDescription();
+            }
+
+            // Değişiklik varsa kaydet
+            if ($major->isDirty() || ! $major->exists) {
+                $major->save();
+            }
 
             $majorIds[$major->id] = [
                 'is_notable' => in_array($majorName, $notableMajors, true),

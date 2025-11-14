@@ -51,6 +51,8 @@ class MajorController extends Controller
                     'id' => $major->id,
                     'name' => $major->name,
                     'slug' => $major->slug,
+                    'title' => $major->title,
+                    'meta_description' => $major->meta_description,
                     'universities_count' => $major->universities_count ?? 0,
                     'created_at' => $major->created_at?->toISOString(),
                     'updated_at' => $major->updated_at?->toISOString(),
@@ -68,14 +70,16 @@ class MajorController extends Controller
     }
 
     /**
-     * Show major by ID
+     * Show major by slug
      *
-     * @param  int  $id
+     * @param  string  $slug
      * @return JsonResponse
      */
-    public function show(int $id): JsonResponse
+    public function showBySlug(string $slug): JsonResponse
     {
-        $major = Major::withCount('universities')->find($id);
+        $major = Major::withCount('universities')
+            ->where('slug', $slug)
+            ->first();
 
         if (! $major) {
             return response()->json([
@@ -85,9 +89,10 @@ class MajorController extends Controller
         }
 
         // Get universities offering this major
+        $perPage = min((int) request()->get('per_page', 20), 100);
         $universities = $major->universities()
             ->select('universities.id', 'universities.name', 'universities.slug', 'universities.location')
-            ->paginate(20);
+            ->paginate($perPage);
 
         return response()->json([
             'success' => true,
@@ -95,6 +100,8 @@ class MajorController extends Controller
                 'id' => $major->id,
                 'name' => $major->name,
                 'slug' => $major->slug,
+                'title' => $major->title,
+                'meta_description' => $major->meta_description,
                 'universities_count' => $major->universities_count ?? 0,
                 'universities' => [
                     'data' => $universities->items(),
@@ -103,6 +110,8 @@ class MajorController extends Controller
                         'last_page' => $universities->lastPage(),
                         'per_page' => $universities->perPage(),
                         'total' => $universities->total(),
+                        'from' => $universities->firstItem(),
+                        'to' => $universities->lastItem(),
                     ],
                 ],
                 'created_at' => $major->created_at?->toISOString(),
