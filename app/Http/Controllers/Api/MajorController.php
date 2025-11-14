@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
 use App\Models\Major;
+use App\Models\Media;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
@@ -88,10 +89,18 @@ class MajorController extends Controller
             ], 404);
         }
 
-        // Get universities offering this major
+        // Get universities offering this major with score and first media
         $perPage = min((int) request()->get('per_page', 20), 100);
         $universities = $major->universities()
-            ->select('universities.id', 'universities.name', 'universities.slug', 'universities.location')
+            ->with(['score'])
+            ->select(
+                'universities.id',
+                'universities.name',
+                'universities.acceptance_rate',
+                'universities.tuition_undergraduate',
+                'universities.tuition_currency',
+                'universities.requirement_sat'
+            )
             ->paginate($perPage);
 
         return response()->json([
@@ -104,7 +113,31 @@ class MajorController extends Controller
                 'meta_description' => $major->meta_description,
                 'universities_count' => $major->universities_count ?? 0,
                 'universities' => [
-                    'data' => $universities->items(),
+                    'data' => collect($universities->items())->map(function ($university) {
+                        // Get first media for this university
+                        $firstMedia = Media::forUniversity($university->id)
+                            ->where('mime_type', 'like', 'image/%')
+                            ->first();
+
+                        $media = null;
+                        if ($firstMedia) {
+                            $baseUrl = route('glide', ['hashName' => $firstMedia->hash_name]);
+                            $media = $baseUrl.'?w=200&h=200&fit=crop&q=85';
+                        }
+
+                        return [
+                            'id' => $university->id,
+                            'name' => $university->name,
+                            'overall_grade' => $university->score?->overall_grade,
+                            'acceptance_rate' => $university->acceptance_rate,
+                            'tuition' => [
+                                'undergraduate' => $university->tuition_undergraduate,
+                                'currency' => $university->tuition_currency,
+                            ],
+                            'sat_score' => $university->requirement_sat,
+                            'media' => $media,
+                        ];
+                    })->values(),
                     'meta' => [
                         'current_page' => $universities->currentPage(),
                         'last_page' => $universities->lastPage(),
@@ -118,6 +151,32 @@ class MajorController extends Controller
                 'updated_at' => $major->updated_at?->toISOString(),
             ],
         ]);
+    }
+
+    /**
+     * Generate Glide URLs for different sizes
+     *
+     * @param  Media  $media
+     * @return array<string, string>
+     */
+    protected function generateGlideUrls(Media $media): array
+    {
+        // Only generate Glide URLs for images
+        if (! str_starts_with($media->mime_type ?? '', 'image/')) {
+            return [];
+        }
+
+        // Use hash_name for cleaner URLs (matches CDN filename)
+        $baseUrl = route('glide', ['hashName' => $media->hash_name]);
+
+        return [
+            'thumbnail' => $baseUrl.'?w=150&h=150&fit=crop&q=85',
+            'small' => $baseUrl.'?w=400&h=400&fit=contain&q=85',
+            'medium' => $baseUrl.'?w=800&h=800&fit=contain&q=85',
+            'large' => $baseUrl.'?w=1600&h=1600&fit=contain&q=90',
+            'original' => $media->url,
+            'custom' => $baseUrl, // Base URL for custom parameters
+        ];
     }
 }
 
