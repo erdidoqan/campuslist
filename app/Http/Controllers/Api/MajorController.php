@@ -96,6 +96,7 @@ class MajorController extends Controller
             ->select(
                 'universities.id',
                 'universities.name',
+                'universities.overview',
                 'universities.acceptance_rate',
                 'universities.tuition_undergraduate',
                 'universities.tuition_currency',
@@ -128,6 +129,7 @@ class MajorController extends Controller
                         return [
                             'id' => $university->id,
                             'name' => $university->name,
+                            'overview' => $university->overview,
                             'overall_grade' => $university->score?->overall_grade,
                             'acceptance_rate' => $university->acceptance_rate,
                             'tuition' => [
